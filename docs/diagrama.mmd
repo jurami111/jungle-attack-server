@@ -1,0 +1,224 @@
+classDiagram
+    class Main {
+        +main(String[] args)$ void
+    }
+    class Server {
+        -ServerSocket listener
+        -MatchManager matchManager
+        -Set~ClientHandler~ clients
+        +start() void
+        +close() void
+    }
+    class ClientHandler {
+        -Gson JSON$
+        -Socket socket
+        -MatchManager matchManager
+        +run() void
+        +send(String type, Object payload) boolean
+    }
+    class Message {
+        <<record>>
+        -String type
+        -Object payload
+    }
+    class MatchManager {
+        -ConcurrentHashMap matches
+        -ConcurrentHashMap playerSessions
+        -ScheduledExecutorService gameLoop
+        +handleMessage(ClientHandler client, String type, JsonObject payload) void
+        +onDisconnect(ClientHandler client) void
+    }
+    class GameSession {
+        -String code
+        -ClientHandler[] clients
+        -AnimalSpecies[] species
+        -Match match
+        -ScheduledFuture tick
+    }
+    class Match {
+        -MapGraph map
+        -List~Pack~ packs
+        -List~CoffeeCup~ coffeeCups
+        -Pack winner
+        -boolean running
+        +start(AnimalSpecies first, AnimalSpecies second) void
+        +updateTick(double seconds) void
+        +updateMovement(double seconds) void
+        +moveCommand(Pack player, List ids, int x, int y) boolean
+        +attackCommand(Pack player, List ids, int targetId) boolean
+        +cancel() void
+    }
+    class MapFactory {
+        +createCostaRicaMap()$ MapGraph
+        +buildCostaRicaCollisions()$ MapCollision
+    }
+    class MapGraph {
+        -Map paths
+        -MapCollision collision
+        +addPath(Zone from, Zone to, List points) void
+        +getPath(Zone from, Zone to) List
+        +getPathLength(Zone from, Zone to) double
+        +getZoneByCoordinates(int x, int y) Zone
+    }
+    class MapCollision {
+        -List walkableRects
+        -List obstacleCircles
+        +isWalkable(int x, int y) boolean
+        +isSegmentWalkable(int x1, int y1, int x2, int y2) boolean
+    }
+    class CircleObstacle {
+        +contains(int x, int y) boolean
+    }
+    class Zone {
+        -String name
+        -int x
+        -int y
+    }
+    class PathFinder {
+        +findShortestPath(MapGraph map, Zone start, Zone end)$ List
+    }
+    class Candidate {
+        <<record>>
+        -Zone zone
+        -double priority
+    }
+    class FogOfWar {
+        +createSnapshot(Match match, Pack viewer, String zone) Map
+        +canViewZone(Match match, Pack viewer, String zone) boolean
+    }
+    class Flag {
+        -Zone zone
+        -Pack owner
+        -String color
+        -boolean captured
+        +isTouchedBy(Animal animal) boolean
+    }
+    class CoffeeCup {
+        -int x
+        -int y
+        -boolean consumed
+        +consumeBy(Animal animal) boolean
+    }
+    class Pack {
+        -AnimalSpecies species
+        -int damageCapacity
+        -List~Animal~ members
+        -int botsKilled
+        -int animalsEliminated
+        -int cupsConsumed
+    }
+    class Animal {
+        <<abstract>>
+        #int id
+        #int energy
+        #double x
+        #double y
+        -Deque waypoints
+        -double cooldownSeconds
+        +updateMovement(double seconds, MapCollision collision) void
+        +updateMovement(double seconds, MapCollision collision, List teammates) void
+        +getTargetPosition() Point
+        +isMoving() boolean
+        +isAlive() boolean
+    }
+    class PlayerAnimal {
+        -Animal attackTarget
+        +attack(Animal target, int damage) boolean
+    }
+    class Bot {
+        +autoAttack(List enemies, int damage) void
+    }
+    class MatchSummary {
+        -AnimalSpecies winnerSpecies
+        -long durationSeconds
+        -List~PackSummary~ packs
+    }
+    class PackSummary {
+        -AnimalSpecies species
+        -int botsKilled
+        -int animalsEliminated
+        -int cupsConsumed
+    }
+    class GameConstants {
+        <<constants>>
+        +int PORT$
+        +int ENCOUNTER_RADIUS$
+        +int MAX_PLAYER_ENERGY$
+    }
+    class AnimalSpecies {
+        <<enumeration>>
+        JAGUAR
+        PUMA
+        TAPIR
+        PEREZOSO
+        TUCAN
+        QUETZAL
+        COATI
+    }
+    class Runnable {
+        <<interface>>
+    }
+    class AutoCloseable {
+        <<interface>>
+    }
+    Main ..> Server : starts
+    Server ..|> AutoCloseable
+    Server *-- MatchManager
+    Server o-- ClientHandler
+    ClientHandler ..|> Runnable
+    ClientHandler ..|> AutoCloseable
+    ClientHandler ..> MatchManager : commands
+    ClientHandler ..> Message : serializes
+    MatchManager ..|> AutoCloseable
+    MatchManager *-- GameSession
+    GameSession o-- "2" ClientHandler
+    GameSession *-- "0..1" Match
+    MatchManager --> FogOfWar : filtered snapshots
+    Match *-- "7" Pack
+    Match *-- "2" Flag
+    Match *-- "10" CoffeeCup
+    Match *-- MapGraph
+    Match --> MatchSummary
+    Match ..> PathFinder
+    Match ..> MapFactory
+    MapFactory ..> MapGraph
+    MapFactory ..> MapCollision
+    MapGraph *-- "12" Zone
+    MapGraph *-- MapCollision
+    MapCollision *-- CircleObstacle
+    PathFinder ..> MapGraph
+    PathFinder ..> Candidate
+    Candidate --> Zone
+    Pack *-- "4 or 10" Animal
+    Pack --> AnimalSpecies
+    Animal <|-- PlayerAnimal
+    Animal <|-- Bot
+    Animal ..> MapCollision
+    PlayerAnimal --> Animal : attack target
+    Flag --> Zone
+    Flag --> Pack : owner
+    CoffeeCup ..> PlayerAnimal
+    FogOfWar ..> Match
+    MatchSummary *-- "7" PackSummary
+    PackSummary --> AnimalSpecies
+    Animal ..> GameConstants
+    Match ..> GameConstants
+    class MatchTest
+    class ServerTest
+    class AnimalTest
+    class PathFinderTest
+    class GameConstantsTest
+    class ProtocolTest
+    class Peer
+    class MapPreview {
+        +main(String[] args)$ void
+    }
+    MatchTest ..> Match : tests
+    MatchTest ..> FogOfWar : tests
+    ServerTest ..> Server : TCP tests
+    ServerTest *-- Peer
+    AnimalTest ..> Animal : tests
+    PathFinderTest ..> PathFinder : tests
+    GameConstantsTest ..> GameConstants : tests
+    ProtocolTest ..> ClientHandler : JSON contract tests
+    MapPreview ..> MapFactory : diagnostic only
