@@ -1,0 +1,6 @@
+{"type":"CREATE_MATCH","payload":{"nickname":"Ana"}}
+{"type":"JOIN_MATCH","payload":{"nickname":"Luis","code":"A7K2"}}
+{"type":"SELECT_ANIMAL","payload":{"species":"JAGUAR"}}
+{"type":"MOVE_ANIMALS","payload":{"animalIds":[1,2],"targetX":910,"targetY":316}}
+{"type":"ATTACK","payload":{"animalIds":[1,2],"targetId":21}}
+{"type":"VIEW_ZONE","payload":{"zone":"Monteverde"}}
