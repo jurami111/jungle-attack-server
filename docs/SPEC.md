@@ -19,13 +19,13 @@ class GameConstants:
     +static final PLAYER2_FLAG_COLOR: String
 
 enum AnimalSpecies:
-    JAGUAR
-    PUMA
-    TAPIR
+    MONO
+    MARIPOSA
+    RANA
     PEREZOSO
-    TUCAN
-    QUETZAL
-    COATI
+    SERPIENTE
+    TORTUGA
+    YIGUIRRO
 
 Model Layer ---------
 abstract class Animal:

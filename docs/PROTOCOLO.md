@@ -58,12 +58,12 @@ No se mandan directamente a un archivo Java ni a `Match`.
 ### SELECT_ANIMAL
 
 ```json
-{"type":"SELECT_ANIMAL","payload":{"species":"JAGUAR"}}
+{"type":"SELECT_ANIMAL","payload":{"species":"MONO"}}
 ```
 
 - Generar en el selector de especie del cliente despues de entrar los dos jugadores.
 - Receptor logico: `MatchManager.selectSpecies()`.
-- Valores: `JAGUAR`, `PUMA`, `TAPIR`, `PEREZOSO`, `TUCAN`, `QUETZAL`, `COATI`.
+- Valores: `MONO`, `MARIPOSA`, `RANA`, `PEREZOSO`, `SERPIENTE`, `TORTUGA`, `YIGUIRRO`.
 - Una eleccion confirmada por jugador. Las especies no pueden repetirse.
 - Respuesta: `ANIMAL_SELECTION`; al confirmar ambos, `GAME_STARTED`.
 - No enviar un comando START: la partida empieza desde el servidor.
@@ -147,7 +147,7 @@ y despacha segun `type`; no abre un socket por mensaje.
 ### ANIMAL_SELECTION
 
 ```json
-{"type":"ANIMAL_SELECTION","payload":{"availableSpecies":["PUMA","TAPIR","PEREZOSO","TUCAN","QUETZAL","COATI"],"yourSpecies":"JAGUAR","opponentSpecies":null}}
+{"type":"ANIMAL_SELECTION","payload":{"availableSpecies":["MARIPOSA","RANA","PEREZOSO","SERPIENTE","TORTUGA","YIGUIRRO"],"yourSpecies":"MONO","opponentSpecies":null}}
 ```
 
 Se envia a los dos despues de entrar el segundo y despues de cada eleccion.
@@ -190,7 +190,7 @@ de vision ni huecos entre zonas. Esta particion no modifica los rectangulos de c
 ### GAME_OVER
 
 ```json
-{"type":"GAME_OVER","payload":{"winner":"JAGUAR","durationSeconds":180,"packs":[{"species":"JAGUAR","botsKilled":2,"animalsEliminated":1,"cupsConsumed":1},{"species":"PUMA","botsKilled":0,"animalsEliminated":0,"cupsConsumed":0},{"species":"TAPIR","botsKilled":0,"animalsEliminated":2,"cupsConsumed":0},{"species":"PEREZOSO","botsKilled":0,"animalsEliminated":0,"cupsConsumed":0},{"species":"TUCAN","botsKilled":0,"animalsEliminated":0,"cupsConsumed":0},{"species":"QUETZAL","botsKilled":0,"animalsEliminated":0,"cupsConsumed":0},{"species":"COATI","botsKilled":0,"animalsEliminated":0,"cupsConsumed":0}]}}
+{"type":"GAME_OVER","payload":{"winner":"MONO","durationSeconds":180,"packs":[{"species":"MONO","botsKilled":2,"animalsEliminated":1,"cupsConsumed":1},{"species":"MARIPOSA","botsKilled":0,"animalsEliminated":0,"cupsConsumed":0},{"species":"RANA","botsKilled":0,"animalsEliminated":2,"cupsConsumed":0},{"species":"PEREZOSO","botsKilled":0,"animalsEliminated":0,"cupsConsumed":0},{"species":"SERPIENTE","botsKilled":0,"animalsEliminated":0,"cupsConsumed":0},{"species":"TORTUGA","botsKilled":0,"animalsEliminated":0,"cupsConsumed":0},{"species":"YIGUIRRO","botsKilled":0,"animalsEliminated":0,"cupsConsumed":0}]}}
 ```
 
 No hay un objeto anidado `summary`. `packs` tiene SIETE entradas, en orden:

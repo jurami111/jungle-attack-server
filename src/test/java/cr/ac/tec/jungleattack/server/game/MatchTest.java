@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class MatchTest {
     private Match match() {
         Match match = new Match("TEST", new Random(7));
-        match.start(AnimalSpecies.JAGUAR, AnimalSpecies.PUMA);
+        match.start(AnimalSpecies.MONO, AnimalSpecies.MARIPOSA);
         return match;
     }
 
@@ -26,8 +26,8 @@ class MatchTest {
         match.updateTick(1);
         assertFalse(match.isRunning());
         assertThrows(IllegalArgumentException.class,
-            () -> match.start(AnimalSpecies.PUMA, AnimalSpecies.PUMA));
-        match.start(AnimalSpecies.JAGUAR, AnimalSpecies.PUMA);
+            () -> match.start(AnimalSpecies.MARIPOSA, AnimalSpecies.MARIPOSA));
+        match.start(AnimalSpecies.MONO, AnimalSpecies.MARIPOSA);
         assertTrue(match.isRunning());
         assertEquals(7, match.getPacks().size());
         assertEquals(10, match.getPlayer1Pack().getMembers().size());
@@ -39,7 +39,7 @@ class MatchTest {
             assertTrue(pack.getMembers().stream().allMatch(a -> a instanceof Bot && a.getEnergy() == 10));
         }
         assertThrows(IllegalStateException.class,
-            () -> match.start(AnimalSpecies.JAGUAR, AnimalSpecies.PUMA));
+            () -> match.start(AnimalSpecies.MONO, AnimalSpecies.MARIPOSA));
     }
 
     @Test

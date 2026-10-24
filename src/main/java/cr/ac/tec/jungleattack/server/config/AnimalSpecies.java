@@ -1,11 +1,11 @@
 package cr.ac.tec.jungleattack.server.config;
 
 public enum AnimalSpecies {
-JAGUAR,
-PUMA,
-TAPIR,
+MONO,
+MARIPOSA,
+RANA,
 PEREZOSO,
-TUCAN,
-QUETZAL,
-COATI    
+SERPIENTE,
+TORTUGA,
+YIGUIRRO
 }

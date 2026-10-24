@@ -68,10 +68,10 @@ class ServerTest {
 
     private JsonObject[] start(Peer first, Peer second) throws IOException {
         join(first, second);
-        first.send("SELECT_ANIMAL", Map.of("species", "JAGUAR"));
+        first.send("SELECT_ANIMAL", Map.of("species", "MONO"));
         first.receive("ANIMAL_SELECTION", payload ->
-            !payload.get("yourSpecies").isJsonNull() && payload.get("yourSpecies").getAsString().equals("JAGUAR"));
-        second.send("SELECT_ANIMAL", Map.of("species", "PUMA"));
+            !payload.get("yourSpecies").isJsonNull() && payload.get("yourSpecies").getAsString().equals("MONO"));
+        second.send("SELECT_ANIMAL", Map.of("species", "MARIPOSA"));
         return new JsonObject[]{first.receive("GAME_STARTED"), second.receive("GAME_STARTED")};
     }
 
@@ -83,15 +83,15 @@ class ServerTest {
         assertTrue(code.matches("[A-Z0-9]{4}"));
         first.send("CREATE_MATCH", Map.of("nickname", "Again"));
         assertTrue(first.receive("ERROR").get("message").getAsString().contains("Already"));
-        first.send("SELECT_ANIMAL", Map.of("species", "JAGUAR"));
+        first.send("SELECT_ANIMAL", Map.of("species", "MONO"));
         first.receive("ANIMAL_SELECTION", payload -> !payload.get("yourSpecies").isJsonNull());
-        second.send("SELECT_ANIMAL", Map.of("species", "JAGUAR"));
+        second.send("SELECT_ANIMAL", Map.of("species", "MONO"));
         assertTrue(second.receive("ERROR").get("message").getAsString().contains("already chose"));
-        second.send("SELECT_ANIMAL", Map.of("species", "PUMA"));
+        second.send("SELECT_ANIMAL", Map.of("species", "MARIPOSA"));
         JsonObject state = first.receive("GAME_STARTED");
         second.receive("GAME_STARTED");
         assertEquals(10, state.getAsJsonArray("ownAnimals").size());
-        assertEquals("JAGUAR", state.getAsJsonObject("ownPack").get("species").getAsString());
+        assertEquals("MONO", state.getAsJsonObject("ownPack").get("species").getAsString());
         assertEquals(1, state.getAsJsonArray("visibleZones").size());
         assertFalse(state.has("map"));
         assertFalse(state.has("allZones"));
@@ -142,7 +142,7 @@ class ServerTest {
         }
         peer.send("CREATE_MATCH", Map.of("nickname", "A \"quoted\" \u00e1 name"));
         peer.receive("MATCH_CREATED");
-        peer.send("SELECT_ANIMAL", Map.of("species", "PUMA"));
+        peer.send("SELECT_ANIMAL", Map.of("species", "MARIPOSA"));
         assertTrue(peer.receive("ERROR").get("message").getAsString().contains("second"));
     }
 

@@ -178,7 +178,7 @@ pack; clients cannot choose an owner or control another player's IDs.
 ```json
 {"type":"CREATE_MATCH","payload":{"nickname":"Ana"}}
 {"type":"JOIN_MATCH","payload":{"nickname":"Luis","code":"A7K2"}}
-{"type":"SELECT_ANIMAL","payload":{"species":"JAGUAR"}}
+{"type":"SELECT_ANIMAL","payload":{"species":"MONO"}}
 {"type":"MOVE_ANIMALS","payload":{"animalIds":[1,2],"targetX":910,"targetY":316}}
 {"type":"ATTACK","payload":{"animalIds":[1,2],"targetId":21}}
 {"type":"VIEW_ZONE","payload":{"zone":"Monteverde"}}
@@ -437,13 +437,13 @@ classDiagram
     }
     class AnimalSpecies {
         <<enumeration>>
-        JAGUAR
-        PUMA
-        TAPIR
+        MONO
+        MARIPOSA
+        RANA
         PEREZOSO
-        TUCAN
-        QUETZAL
-        COATI
+        SERPIENTE
+        TORTUGA
+        YIGUIRRO
     }
     class Runnable {
         <<interface>>

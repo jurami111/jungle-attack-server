@@ -18,6 +18,14 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ProtocolTest {
+    @Test
+    void speciesMatchTheClientSprites() {
+        assertEquals(Set.of("MONO", "MARIPOSA", "RANA", "PEREZOSO",
+                "SERPIENTE", "TORTUGA", "YIGUIRRO"),
+            java.util.Arrays.stream(AnimalSpecies.values())
+                .map(Enum::name).collect(java.util.stream.Collectors.toSet()));
+    }
+
     private Map<String, JsonObject> examples(String filename) throws IOException {
         Map<String, JsonObject> messages = new LinkedHashMap<>();
         Gson gson = new GsonBuilder().serializeNulls().create();
@@ -55,7 +63,7 @@ class ProtocolTest {
         assertEquals(Set.of("MATCH_CREATED", "MATCH_JOINED", "PLAYER_JOINED", "ANIMAL_SELECTION",
             "GAME_STARTED", "STATE_UPDATE", "GAME_OVER", "MATCH_CANCELLED", "ERROR"), messages.keySet());
         Match match = new Match("TEST", new Random(7));
-        match.start(AnimalSpecies.JAGUAR, AnimalSpecies.PUMA);
+        match.start(AnimalSpecies.MONO, AnimalSpecies.MARIPOSA);
         Gson gson = new Gson();
         JsonObject state = gson.toJsonTree(new FogOfWar().createSnapshot(
             match, match.getPlayer1Pack(), null)).getAsJsonObject();

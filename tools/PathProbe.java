@@ -69,7 +69,7 @@ public class PathProbe {
 
     private static Result run(String originName, String destinationName, double delta, boolean individually) {
         Match match = new Match("PROBE", new Random(7));
-        match.start(AnimalSpecies.JAGUAR, AnimalSpecies.PUMA);
+        match.start(AnimalSpecies.MONO, AnimalSpecies.MARIPOSA);
         MapGraph map = match.getMap();
         Zone origin = zone(map, originName);
         Zone destination = zone(map, destinationName);
