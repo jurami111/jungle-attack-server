@@ -33,6 +33,9 @@ class MatchTest {
         assertEquals(10, match.getPlayer1Pack().getMembers().size());
         assertEquals(20, match.getPlayer1Pack().getMembers().get(0).getEnergy());
         assertEquals(2, match.getPlayer1Pack().getDamageCapacity());
+        List<Animal> ownAnimals = match.getPlayer1Pack().getMembers();
+        assertEquals(GameConstants.FORMATION_SPACING, ownAnimals.get(1).getX() - ownAnimals.get(0).getX());
+        assertEquals(GameConstants.FORMATION_SPACING, ownAnimals.get(5).getY() - ownAnimals.get(0).getY());
         for (Pack pack : match.getPacks().subList(2, 7)) {
             assertEquals(4, pack.getMembers().size());
             assertEquals(1, pack.getDamageCapacity());

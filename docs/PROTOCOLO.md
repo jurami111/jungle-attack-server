@@ -82,8 +82,8 @@ No se mandan directamente a un archivo Java ni a `Match`.
   no coordenadas del panel, de una zona, de la pantalla o afectadas por zoom.
 - La orden avanza en ticks; no reenviarla en cada frame.
 - El clic es el centro de la formacion: cada animal conserva un slot estable
-  (hasta 20 px en X y 10 px en Y), incluso con ordenes individuales. Si esta
-  ocupado por un companero, se busca otro destino cercano, libre y caminable.
+  separado 32 px en X y Y, incluso con ordenes individuales. Si esta ocupado por
+  un companero, se busca otro destino cercano, libre y caminable.
   Esto evita apilar diez ordenes individuales en el mismo punto.
 - No hay ACK de movimiento: su resultado se observa en `STATE_UPDATE`.
 - Los destinos y recorridos bloqueados se rechazan antes de sustituir una ruta

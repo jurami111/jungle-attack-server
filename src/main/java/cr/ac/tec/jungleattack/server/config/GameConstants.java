@@ -15,8 +15,8 @@ public class GameConstants {
     public static final int MAX_COFFEE_CUPS = 10;
     public static final int GAME_TICK_MILLIS = 33;
     public static final int MAX_NETWORK_MESSAGE_CHARS = 8192;
-    public static final int FORMATION_SPACING = 10;
-    public static final int MIN_ANIMAL_DISTANCE = 8;
+    public static final int FORMATION_SPACING = 32;
+    public static final int MIN_ANIMAL_DISTANCE = 24;
     public static final String PLAYER1_FLAG_COLOR = "#E53935";
     public static final String PLAYER2_FLAG_COLOR = "#1E88E5";
     
