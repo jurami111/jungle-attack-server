@@ -12,7 +12,7 @@ class AnimalTest {
         map.addWalkableRect(0, 0, 100, 100);
         Animal animal = new PlayerAnimal(1, 10, 10);
         animal.followRoute(List.of(new int[]{12, 10}, new int[]{12, 20}));
-        animal.updateMovement(1, map);
+        animal.updateMovement(0.05, map);
         assertEquals(12, animal.getX());
         assertEquals(13, animal.getY());
     }

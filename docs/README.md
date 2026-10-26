@@ -90,7 +90,7 @@ Visibility is enforced on the server. The server only sends each client the info
 Disconnection: if either player disconnects, the match is cancelled without declaring a winner. The remaining client receives MATCH_CANCELLED. Always close sockets in a finally or with try-with-resources.
 N matches: MatchManager keeps a ConcurrentHashMap<String, GameSession> indexed by code. When a match ends, it is removed from the map.
 1 attack per second: keep a cooldown per animal (for example, lastAttackTime) and only allow a new attack when ATTACK_COOLDOWN_MS = 1000 have passed. Do not use Thread.sleep per animal.
-Constant speed: on each tick, the animal advances ANIMAL_SPEED * deltaTime towards the next point of its route. Using the elapsed time (deltaTime) keeps the speed constant even if a tick is delayed.
+Constant speed: on each tick, the animal advances ANIMAL_SPEED * deltaTime towards the next point of its route. ANIMAL_SPEED is 100 map pixels per second. Using the elapsed time (deltaTime) keeps the speed constant even if a tick is delayed.
 4. Client: UI, mouse, and threads
 Network thread separate from the UI thread. A thread reads messages from the socket. That thread must not touch Swing components directly: use SwingUtilities.invokeLater(...) (in JavaFX, Platform.runLater(...)).
 Observer + MVC: the client model is updated with each STATE_UPDATE and notifies the views (Observer). The view only draws. The controller converts mouse events into commands. The view does not contain game logic.
@@ -261,8 +261,10 @@ not claim to cover all possible mid-route redirections or crowd conflicts.
 
 [Open the updated SVG](mapa-colisiones-actual.svg) or
 [PNG preview](mapa-colisiones-actual.png). Green pixels come directly from
-`isWalkable(x,y)`; dark pixels are blocked. Yellow dashed lines follow the actual
-stored polylines. A red marker would identify a non-walkable zone center.
+`isWalkable(x,y)`; dark pixels are blocked. The defined walkable rectangles have
+been expanded 40 map pixels on each side to make paths less narrow, while crater
+obstacles remain blocked. Yellow dashed lines follow the actual stored polylines.
+A red marker would identify a non-walkable zone center.
 
 ![Current walkable geometry](mapa-colisiones-actual.png)
 

@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.util.List;
 
 public class MapFactory {
+    private static final int WALKABLE_AREA_PADDING = 40;
 
     public static MapGraph createCostaRicaMap() {
         MapGraph graph = new MapGraph();
@@ -84,28 +85,28 @@ public class MapFactory {
         MapCollision collision = new MapCollision();
 
         //Todos los rectángulos caminables
-        collision.addWalkableRect(360, 1162, 523, 598);
-        collision.addWalkableRect(360, 1205, 2146, 1251);
-        collision.addWalkableRect(225, 598, 490, 140);
-        collision.addWalkableRect(486, 280, 2118, 341);
-        collision.addWalkableRect(1473, 341, 1554, 717);
-        collision.addWalkableRect(519, 865, 795, 920);
-        collision.addWalkableRect(880, 1205, 946, 1012);
-        collision.addWalkableRect(1092, 874, 1287, 918);
-        collision.addWalkableRect(245, 1556, 430, 1304);
-        collision.addWalkableRect(1745, 861, 1906, 923);
-        collision.addWalkableRect(2082, 282, 2137, 706);
-        collision.addWalkableRect(2076, 1202, 2153, 1009);
-        collision.addWalkableRect(1480, 1060, 1539, 1202);
-        collision.addWalkableRect(1480, 1200, 1539, 1506);
-        collision.addWalkableRect(888, 1247, 935, 1506);
-        collision.addWalkableRect(664, 1501, 1688, 1612);
-        collision.addWalkableRect(1200, 1436, 1859, 1499);
-        collision.addWalkableRect(1817, 1741, 1864, 1247);
-        collision.addWalkableRect(1241, 661, 1748, 1132);
-        collision.addWalkableRect(1858, 667, 2329, 1036);
-        collision.addWalkableRect(360, 1304, 418, 1162);
-        collision.addWalkableRect(946, 1171, 1211, 903);
+        addExpandedWalkableRect(collision, 360, 1162, 523, 598);
+        addExpandedWalkableRect(collision, 360, 1205, 2146, 1251);
+        addExpandedWalkableRect(collision, 225, 598, 490, 140);
+        addExpandedWalkableRect(collision, 486, 280, 2118, 341);
+        addExpandedWalkableRect(collision, 1473, 341, 1554, 717);
+        addExpandedWalkableRect(collision, 519, 865, 795, 920);
+        addExpandedWalkableRect(collision, 880, 1205, 946, 1012);
+        addExpandedWalkableRect(collision, 1092, 874, 1287, 918);
+        addExpandedWalkableRect(collision, 245, 1556, 430, 1304);
+        addExpandedWalkableRect(collision, 1745, 861, 1906, 923);
+        addExpandedWalkableRect(collision, 2082, 282, 2137, 706);
+        addExpandedWalkableRect(collision, 2076, 1202, 2153, 1009);
+        addExpandedWalkableRect(collision, 1480, 1060, 1539, 1202);
+        addExpandedWalkableRect(collision, 1480, 1200, 1539, 1506);
+        addExpandedWalkableRect(collision, 888, 1247, 935, 1506);
+        addExpandedWalkableRect(collision, 664, 1501, 1688, 1612);
+        addExpandedWalkableRect(collision, 1200, 1436, 1859, 1499);
+        addExpandedWalkableRect(collision, 1817, 1741, 1864, 1247);
+        addExpandedWalkableRect(collision, 1241, 661, 1748, 1132);
+        addExpandedWalkableRect(collision, 1858, 667, 2329, 1036);
+        addExpandedWalkableRect(collision, 360, 1304, 418, 1162);
+        addExpandedWalkableRect(collision, 946, 1171, 1211, 903);
 
         //Obstáculos circulares / cráteres (3 áreas no caminables)
         collision.addObstacleCircle(1504, 859, 152); // Cráter Poás
@@ -113,6 +114,14 @@ public class MapFactory {
         collision.addObstacleCircle(1109, 1077, 75);  // Montaña Chirripo
 
         return collision;
+    }
+
+    private static void addExpandedWalkableRect(MapCollision collision, int x1, int y1, int x2, int y2) {
+        collision.addWalkableRect(
+            Math.min(x1, x2) - WALKABLE_AREA_PADDING,
+            Math.min(y1, y2) - WALKABLE_AREA_PADDING,
+            Math.max(x1, x2) + WALKABLE_AREA_PADDING,
+            Math.max(y1, y2) + WALKABLE_AREA_PADDING);
     }
 
 }

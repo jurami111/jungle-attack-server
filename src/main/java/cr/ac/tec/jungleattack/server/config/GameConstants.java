@@ -3,7 +3,7 @@ package cr.ac.tec.jungleattack.server.config;
 public class GameConstants {
 
     public static final int PORT = 12345;
-    public static final int ANIMAL_SPEED = 5;
+    public static final int ANIMAL_SPEED = 100;
     public static final int ENCOUNTER_RADIUS = 30;
     public static final int FLAG_RADIUS = 30;
     public static final int MAX_PLAYER_ENERGY = 20;

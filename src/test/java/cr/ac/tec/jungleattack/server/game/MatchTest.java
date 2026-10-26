@@ -63,12 +63,16 @@ class MatchTest {
             assertTrue(map.isWalkable(zone.getCenterX(), zone.getCenterY()), zone.getName());
         }
         assertTrue(map.getCollision().isSegmentWalkable(1514, 1042, 1503, 1499));
+        assertTrue(map.isWalkable(700, 245));
+        assertFalse(map.isWalkable(700, 239));
         for (int y = 1200; y <= 1505; y++) {
             assertTrue(map.isWalkable(1480, y));
             assertTrue(map.isWalkable(1538, y));
         }
-        assertFalse(map.isWalkable(1479, 1350));
-        assertFalse(map.isWalkable(1539, 1350));
+        assertTrue(map.isWalkable(1440, 1350));
+        assertTrue(map.isWalkable(1578, 1350));
+        assertFalse(map.isWalkable(1439, 1350));
+        assertFalse(map.isWalkable(1580, 1350));
         assertFalse(map.isWalkable(1504, 859));
         assertFalse(map.isWalkable(2116, 865));
         assertFalse(map.isWalkable(1109, 1077));
@@ -82,7 +86,7 @@ class MatchTest {
         Animal untouched = pack.getMembers().get(1);
         int x = chosen.getX();
         int otherX = untouched.getX();
-        assertTrue(match.moveCommand(pack, List.of(chosen.getId()), x + 50, chosen.getY()));
+        assertTrue(match.moveCommand(pack, List.of(chosen.getId()), x + 500, chosen.getY()));
         for (int tick = 0; tick < 30; tick++) match.updateTick(1.0 / 30);
         assertEquals(x + GameConstants.ANIMAL_SPEED, chosen.getX());
         assertEquals(otherX, untouched.getX());
