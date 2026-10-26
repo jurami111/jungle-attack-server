@@ -174,6 +174,14 @@ Campos exactos del payload:
 | `visibleCoffeeCups` | Tazas sin consumir en esa zona: `{x,y}` |
 | `visibleFlags` | Banderas de esa zona: `{owner,x,y,color,captured}` |
 
+Los animales propios y visibles pueden incluir `attack`:
+`{"sequence":1,"targetX":440,"targetY":400}`. Solo se envia durante los 300 ms
+posteriores a un golpe que aplico dano. La secuencia aumenta por animal, no
+por snapshot; el cliente inicia una animacion al recibir una secuencia nueva,
+sin calcular dano ni reiniciarla en cada tick. La ausencia de `attack` es valida
+para clientes/servidores anteriores. Los bots patrullan automaticamente entre
+zonas conectadas y se detienen cuando un jugador entra en su radio de ataque.
+
 Rojo `#E53935` = creador de partida; azul `#1E88E5` = segundo jugador.
 La propiedad se identifica por `owner` (especie), NO por interpretar el color.
 

@@ -205,33 +205,30 @@ temporary local ports: lobby validation, species uniqueness, JSON errors,
 selected-unit movement, formation, combat/cooldown, energy bonuses, coffee,
 fog filtering, flag capture, total elimination, and disconnects across two matches.
 
-A* still searches a small zone graph, not a pixel grid. Each connection now stores
-its real polyline in `MapGraph.paths`; `MapFactory` supplies the intermediate turns.
-The reverse connection reuses the same points in reverse order, and A* weights each
-edge by the sum of its segment lengths. `Match` joins those points, validates every
-segment including the current-position entry and destination-slot exit, and only
-then accepts the command. No grid search or new production class was added.
+A* searches the zone graph using the lengths of the actual connection polylines.
+When a formation's offset route is blocked, `WalkablePathFinder` searches walkable
+coordinates from the animal's actual position, including detours inside one zone.
+It checks every segment against the collision map and replans around living
+teammates after half a second without progress. Its grid uses 8 px spacing,
+refining to 4 px when needed to pass tight gaps. Exact positions and rounded
+collision cells are both checked when leaving contact with another animal.
 
 The narrow rectangle `(1480,1200)` to `(1539,1506)` connects Poas to Tamarindo.
 The one-pixel seam at y=598 in the Conchal-Bahia Ballena corridor was also closed:
 the existing lower rectangle now starts at y=598 rather than y=599.
 Zone centers, other rectangles and craters are unchanged.
 
-Each animal keeps a stable formation slot, even with individual orders, so the
-clicked coordinate is the formation anchor, not a shared final position. Slots
-are used only when their full route is walkable. The current corridors fit all ten
-validated slot paths. Movement checks the entire pixel supercover of each segment
-and maintains at least 8 px between living teammates, waiting without deleting the
-route when blocked. Server movement uses at most one pixel of travel per internal
-step, even when the outer tick is delayed. The units are center distances; graphical
-sprite widths have not been specified.
+Single-animal orders use the clicked position without the old global formation
+offset. Group destinations are distinct walkable slots inside the requested zone.
+Inter-zone arrivals and repeated individual orders leave wider gaps so parked
+animals do not seal off the remaining slots. Nearby moves keep the compact
+formation. The minimum rounded center distance between teammates is 24 px.
+Movement advances at most one pixel per internal step, even after a delayed tick.
 
-This is not a general traffic solver: arbitrary opposing orders within the same
-pack can require new orders rather than automatic passing. A destination whose
-entry/exit cannot connect through these polylines is explicitly rejected instead
-of starting a broken route.
-The actual client repository was not provided; integration is tested with TCP test
-clients, not the real user interface. No claim of a 100% playable match is made yet.
+Bots choose connected zones to patrol without client commands, stop in encounter
+range to attack, and resume patrols when no player is in range. A successful hit
+increments an attack sequence and exposes its target coordinates for 300 ms in
+filtered snapshots. This drives client feedback without client-side damage.
 
 `make test` runs the unit/TCP suite AND the exhaustive movement diagnostic.
 It can also be run independently:
@@ -244,16 +241,15 @@ java --class-path "build/classes:build/deps/gson-2.11.0.jar" tools/PathProbe.jav
 It issues real `Match.moveCommand` orders to ten living animals for every ordered
 pair of distinct zones (132 pairs), then runs `Match.updateMovement` without
 combat or early flag victory. Each tick checks all ten centers for walkability
-and coincident coordinates. Traversed segments are independently sampled every
-half pixel. It repeats at 30 FPS and with one-second delayed ticks, and tests
+and coincident coordinates. Collision checks inspect the actual substeps rather
+than a straight chord that would cut across valid turns. It repeats at 30 FPS
+and with one-second delayed ticks, and tests
 individual orders to the same point. Results go to `build/prueba-caminos.csv`;
 the command exits with an assertion failure if these requirements are unmet.
 
-Current measurements: 132/132 successful group routes and 132/132 successful
-sets of individual orders at 30 FPS, with the same results at one-second ticks:
-528/528 scenarios, ten animals arriving in every scenario, no coincident centers,
-no blocked endpoints or sampled crossings. The minimum measured rounded-center
-distance was 9 px (the required minimum is 8 px). These simulations start from the
+The diagnostic requires all 528 scenarios to complete with ten arrivals,
+no blocked crossings and no teammate separation below 24 px.
+These simulations start from the
 formation in each zone and isolate movement from combat/flag termination; they do
 not claim to cover all possible mid-route redirections or crowd conflicts.
 
@@ -369,6 +365,9 @@ classDiagram
     class PathFinder {
         +findShortestPath(MapGraph map, Zone start, Zone end)$ List
     }
+    class WalkablePathFinder {
+        +findPath(MapCollision map, Point2D start, Point target, List occupied)$ List
+    }
     class Candidate {
         <<record>>
         -Zone zone
@@ -472,6 +471,7 @@ classDiagram
     Match *-- MapGraph
     Match --> MatchSummary
     Match ..> PathFinder
+    Match ..> WalkablePathFinder
     Match ..> MapFactory
     MapFactory ..> MapGraph
     MapFactory ..> MapCollision

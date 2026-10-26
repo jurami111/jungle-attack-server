@@ -37,11 +37,15 @@ public class PathProbe {
                             Result result = run(origin.getName(), destination.getName(), delta, individually);
                             total++;
                             if (result.arrived == 10) { complete++; batchComplete++; }
+                            else System.out.printf("FAILED %s -> %s (%s): accepted=%s, arrived=%d/10%n",
+                                origin.getName(), destination.getName(), individually ? "individual" : "group",
+                                result.accepted, result.arrived);
                             outside += result.outside;
                             crossedBlocked += result.crossedBlocked;
                             if (result.overlapFrames > 0) overlaps++;
                             if (result.minDistance < GameConstants.MIN_ANIMAL_DISTANCE) tooClose++;
                             result.write(csv);
+                            csv.flush();
                         }
                     }
                     System.out.printf(Locale.ROOT, "BATCH delta=%.6f, %s: complete=%d/132%n",
@@ -92,32 +96,27 @@ public class PathProbe {
         Result result = new Result(originName, destinationName, delta, individually, accepted);
         inspect(result, map, animals, 0);
         int still = 0;
-        int maximumTicks = (int) Math.ceil(8000 / delta);
+        int maximumTicks = (int) Math.ceil(180 / delta);
         for (int tick = 1; tick <= maximumTicks; tick++) {
             List<String> before = animals.stream().map(a -> a.getX() + "," + a.getY()).toList();
-            List<java.awt.Point> from = animals.stream().map(a -> new java.awt.Point(a.getX(), a.getY())).toList();
-            match.updateMovement(delta);
-            for (int index = 0; index < animals.size(); index++) {
-                Animal animal = animals.get(index);
-                int fromX = from.get(index).x;
-                int fromY = from.get(index).y;
-                double length = Math.hypot(animal.getX() - fromX, animal.getY() - fromY);
-                int steps = (int) Math.ceil(length * 2);
-                for (int sample = 1; sample < steps; sample++) {
-                    int x = (int) Math.round(fromX + (animal.getX() - fromX) * (double) sample / steps);
-                    int y = (int) Math.round(fromY + (animal.getY() - fromY) * (double) sample / steps);
-                    if (!map.isWalkable(x, y)) {
+            int substeps = Math.max(1, (int) Math.ceil(GameConstants.ANIMAL_SPEED * delta));
+            for (int step = 0; step < substeps; step++) {
+                List<java.awt.Point> from = animals.stream().map(a -> new java.awt.Point(a.getX(), a.getY())).toList();
+                match.updateMovement(delta / substeps);
+                for (int index = 0; index < animals.size(); index++) {
+                    Animal animal = animals.get(index);
+                    int fromX = from.get(index).x;
+                    int fromY = from.get(index).y;
+                    if (!map.getCollision().isSegmentWalkable(fromX, fromY, animal.getX(), animal.getY())) {
                         result.crossedBlocked++;
                         if (result.firstBlockedCrossing.isEmpty()) {
                             result.firstBlockedCrossing = "tick=" + tick + " animal=" + animal.getId()
-                                + " segment=" + fromX + ":" + fromY + "->" + animal.getX() + ":" + animal.getY()
-                                + " sample=" + x + ":" + y;
+                                + " segment=" + fromX + ":" + fromY + "->" + animal.getX() + ":" + animal.getY();
                         }
-                        break;
                     }
                 }
+                inspect(result, map, animals, tick);
             }
-            inspect(result, map, animals, tick);
             result.arrived = 0;
             for (int i = 0; i < animals.size(); i++) {
                 Animal animal = animals.get(i);

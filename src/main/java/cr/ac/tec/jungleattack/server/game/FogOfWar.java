@@ -126,6 +126,11 @@ public final class FogOfWar {
         state.put("y", animal.getY());
         state.put("energy", animal.getEnergy());
         state.put("alive", animal.isAlive());
+        if (animal.isAttacking()) {
+            var target = animal.getAttackPosition();
+            state.put("attack", Map.of("sequence", animal.getAttackSequence(),
+                "targetX", target.x, "targetY", target.y));
+        }
         return state;
     }
 

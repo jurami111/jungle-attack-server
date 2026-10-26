@@ -64,6 +64,14 @@ public class MapCollision {
         return false;
     }
 
+    public Rectangle getWalkableBounds() {
+        Rectangle bounds = new Rectangle();
+        for (Rectangle rectangle : walkableRects) {
+            bounds = bounds.isEmpty() ? new Rectangle(rectangle) : bounds.union(rectangle);
+        }
+        return bounds;
+    }
+
     // Supercover: comprueba todas las celdas cruzadas, tambien al pasar por una esquina.
     public boolean isSegmentWalkable(int x1, int y1, int x2, int y2) {
         if (!isWalkable(x1, y1) || !isWalkable(x2, y2)) return false;

@@ -77,6 +77,9 @@ classDiagram
     class PathFinder {
         +findShortestPath(MapGraph map, Zone start, Zone end)$ List
     }
+    class WalkablePathFinder {
+        +findPath(MapCollision map, Point2D start, Point target, List occupied)$ List
+    }
     class Candidate {
         <<record>>
         -Zone zone
@@ -180,6 +183,7 @@ classDiagram
     Match *-- MapGraph
     Match --> MatchSummary
     Match ..> PathFinder
+    Match ..> WalkablePathFinder
     Match ..> MapFactory
     MapFactory ..> MapGraph
     MapFactory ..> MapCollision

@@ -40,6 +40,27 @@ class AnimalTest {
     }
 
     @Test
+    void attacksReportASequenceAndTargetOnlyWhenDamageIsApplied() {
+        Bot bot = new Bot(1, 100, 100);
+        PlayerAnimal player = new PlayerAnimal(2, 125, 100);
+        bot.autoAttack(List.of(player), 1);
+        assertEquals(19, player.getEnergy());
+        assertTrue(bot.isAttacking());
+        assertEquals(1, bot.getAttackSequence());
+        assertEquals(new java.awt.Point(125, 100), bot.getAttackPosition());
+        bot.autoAttack(List.of(player), 1);
+        assertEquals(1, bot.getAttackSequence());
+        bot.updateCooldown(0.5);
+        assertFalse(bot.isAttacking());
+        bot.updateCooldown(0.5);
+        bot.autoAttack(List.of(player), 1);
+        assertEquals(2, bot.getAttackSequence());
+        assertEquals(18, player.getEnergy());
+        bot.recieveDamage(10);
+        assertFalse(bot.isAttacking());
+    }
+
+    @Test
     void aBlockedAnimalWaitsAndResumesWithoutLosingItsRoute() {
         MapCollision map = new MapCollision();
         map.addWalkableRect(0, 0, 100, 100);

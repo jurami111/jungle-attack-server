@@ -1,6 +1,7 @@
 package cr.ac.tec.jungleattack.server.game;
 
 import cr.ac.tec.jungleattack.server.algorithms.PathFinder;
+import cr.ac.tec.jungleattack.server.algorithms.WalkablePathFinder;
 import cr.ac.tec.jungleattack.server.config.AnimalSpecies;
 import cr.ac.tec.jungleattack.server.config.GameConstants;
 import cr.ac.tec.jungleattack.server.entities.Animal;
@@ -24,6 +25,9 @@ public class Match {
     private final List<Pack> packs = new ArrayList<>();
     private final List<CoffeeCup> coffeeCups = new ArrayList<>();
     private final Set<Animal> reportedDeaths = new HashSet<>();
+    private final Map<Animal, Double> blockedSeconds = new LinkedHashMap<>();
+    private final Map<Pack, Zone> patrolDestinations = new LinkedHashMap<>();
+    private final Map<Pack, Double> patrolRetrySeconds = new LinkedHashMap<>();
     private final Random random;
     private Flag player1Flag;
     private Flag player2Flag;
@@ -90,6 +94,7 @@ public class Match {
                 animal.updateCooldown(deltaTimeSeconds);
             }
         }
+        updateBotPatrols(deltaTimeSeconds);
         updateMovement(deltaTimeSeconds);
         if (checkVictory()) return;
         collectCoffeeCups();
@@ -109,6 +114,39 @@ public class Match {
         checkVictory();
     }
 
+    private void updateBotPatrols(double seconds) {
+        List<Animal> players = playerPacks().stream().flatMap(pack -> pack.getMembers().stream())
+            .filter(Animal::isAlive).toList();
+        for (Pack pack : packs) {
+            if (isPlayerPack(pack)) continue;
+            List<Animal> ready = new ArrayList<>();
+            for (Animal bot : pack.getMembers()) {
+                if (!bot.isAlive()) continue;
+                if (players.stream().anyMatch(bot::isInRange)) {
+                    bot.stop();
+                } else if (!bot.isMoving()) {
+                    ready.add(bot);
+                }
+            }
+            if (ready.isEmpty()) continue;
+            double retry = Math.max(0, patrolRetrySeconds.getOrDefault(pack, 0.0) - seconds);
+            patrolRetrySeconds.put(pack, retry);
+            if (retry > 0) continue;
+            Zone destination = patrolDestinations.get(pack);
+            if (destination == null || pack.getMembers().stream().noneMatch(Animal::isMoving)) {
+                Zone origin = map.getZoneByCoordinates(ready.get(0).getX(), ready.get(0).getY());
+                List<Zone> neighbors = map.getConnectedZones(origin);
+                destination = neighbors.get(random.nextInt(neighbors.size()));
+                patrolDestinations.put(pack, destination);
+            }
+            if (!planMovement(pack, ready, destination.getCenterX(), destination.getCenterY())) {
+                System.err.println("Bot patrol route unavailable: " + pack.getSpecies() + " -> " + destination.getName());
+                patrolRetrySeconds.put(pack, GameConstants.BOT_PATROL_RETRY_SECONDS);
+                patrolDestinations.remove(pack);
+            }
+        }
+    }
+
     // Pasos pequenos para que un tick retrasado no salte por encima de otro animal.
     public void updateMovement(double deltaTimeSeconds) {
         if (!Double.isFinite(deltaTimeSeconds) || deltaTimeSeconds < 0) {
@@ -120,7 +158,24 @@ public class Match {
             for (Pack pack : packs) {
                 List<Animal> teammates = pack.getMembers();
                 for (Animal animal : teammates) {
+                    int beforeX = animal.getX();
+                    int beforeY = animal.getY();
                     animal.updateMovement(deltaTimeSeconds / steps, map.getCollision(), teammates);
+                    if (animal.isAlive() && animal.isMoving()
+                        && animal.getX() == beforeX && animal.getY() == beforeY) {
+                        double blocked = blockedSeconds.getOrDefault(animal, 0.0) + deltaTimeSeconds / steps;
+                        if (blocked >= GameConstants.MOVEMENT_REPLAN_SECONDS) {
+                            var occupied = teammates.stream().filter(other -> other != animal && other.isAlive())
+                                .map(Animal::getPosition).toList();
+                            List<int[]> route = WalkablePathFinder.findPath(map.getCollision(),
+                                animal.getPosition(), animal.getTargetPosition(), occupied);
+                            if (!route.isEmpty()) animal.followRoute(route);
+                            blocked = 0;
+                        }
+                        blockedSeconds.put(animal, blocked);
+                    } else {
+                        blockedSeconds.remove(animal);
+                    }
                 }
             }
         }
@@ -130,35 +185,48 @@ public class Match {
         if (!running || !map.isWalkable(x, y)) return false;
         List<Animal> selected = selectAnimals(player, ids);
         if (selected.isEmpty()) return false;
+        return planMovement(player, selected, x, y);
+    }
+
+    private boolean planMovement(Pack player, List<Animal> selected, int x, int y) {
         Map<Animal, List<int[]>> routes = new LinkedHashMap<>();
         List<Point> reserved = new ArrayList<>();
         for (Animal member : player.getMembers()) {
             if (member.isAlive() && !selected.contains(member)) reserved.add(member.getTargetPosition());
         }
-        for (Animal animal : selected) {
-            int index = player.getMembers().indexOf(animal);
-            int dx = (index % 5 - 2) * GameConstants.FORMATION_SPACING;
+        Zone destination = map.getZoneByCoordinates(x, y);
+        boolean crossingZones = selected.stream().anyMatch(animal ->
+            map.getZoneByCoordinates(animal.getX(), animal.getY()) != destination);
+        int spacing = selected.size() == 1 || crossingZones ? GameConstants.FORMATION_SPACING * 2
+            : GameConstants.FORMATION_SPACING;
+        for (int index = 0; index < selected.size(); index++) {
+            Animal animal = selected.get(index);
+            int dx = selected.size() == 1 ? 0 : (index % 5 - 2) * GameConstants.FORMATION_SPACING;
             int dy = index / 5 * GameConstants.FORMATION_SPACING;
-            Point target = findFreeDestination(x + dx, y + dy, reserved);
+            Point target = findFreeDestination(x + dx, y + dy, reserved, destination, spacing);
             if (target == null) return false;
             List<int[]> route = buildRoute(animal, target, dx, dy);
             if (route.isEmpty()) return false;
             reserved.add(target);
             routes.put(animal, route);
         }
-        routes.forEach(Animal::followRoute);
+        routes.forEach((animal, route) -> {
+            animal.followRoute(route);
+            blockedSeconds.remove(animal);
+        });
         return true;
     }
 
-    private Point findFreeDestination(int x, int y, List<Point> reserved) {
-        for (int radius = 0; radius <= GameConstants.FORMATION_SPACING * 5;
+    private Point findFreeDestination(int x, int y, List<Point> reserved, Zone destination, int spacing) {
+        for (int radius = 0; radius <= GameConstants.FORMATION_SPACING * 12;
             radius += GameConstants.FORMATION_SPACING) {
             for (int dy = -radius; dy <= radius; dy += GameConstants.FORMATION_SPACING) {
                 for (int dx = -radius; dx <= radius; dx += GameConstants.FORMATION_SPACING) {
                     if (Math.max(Math.abs(dx), Math.abs(dy)) != radius) continue;
                     Point candidate = new Point(x + dx, y + dy);
                     if (map.isWalkable(candidate.x, candidate.y)
-                        && reserved.stream().noneMatch(p -> p.distance(candidate) < GameConstants.MIN_ANIMAL_DISTANCE)) {
+                        && map.getZoneByCoordinates(candidate.x, candidate.y) == destination
+                        && reserved.stream().noneMatch(p -> p.distance(candidate) < spacing)) {
                         return candidate;
                     }
                 }
@@ -168,6 +236,9 @@ public class Match {
     }
 
     private List<int[]> buildRoute(Animal animal, Point target, int dx, int dy) {
+        if (map.getCollision().isSegmentWalkable(animal.getX(), animal.getY(), target.x, target.y)) {
+            return List.of(new int[]{target.x, target.y});
+        }
         List<int[]> points = new ArrayList<>();
         Zone origin = map.getZoneByCoordinates(animal.getX(), animal.getY());
         Zone destination = map.getZoneByCoordinates(target.x, target.y);
@@ -184,7 +255,10 @@ public class Match {
         int fromX = animal.getX();
         int fromY = animal.getY();
         for (int[] point : points) {
-            if (!map.getCollision().isSegmentWalkable(fromX, fromY, point[0], point[1])) return List.of();
+            if (!map.getCollision().isSegmentWalkable(fromX, fromY, point[0], point[1])) {
+                return WalkablePathFinder.findPath(map.getCollision(),
+                    new Point(animal.getX(), animal.getY()), target, List.of());
+            }
             fromX = point[0];
             fromY = point[1];
         }

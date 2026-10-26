@@ -4,6 +4,7 @@ import cr.ac.tec.jungleattack.server.config.GameConstants;
 import cr.ac.tec.jungleattack.server.game.MapCollision;
 import java.awt.Point;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -17,6 +18,9 @@ public abstract class Animal {
     private Integer destinationY;
     private final Deque<int[]> waypoints = new ArrayDeque<>();
     private double cooldownSeconds = 0;
+    private double attackSeconds;
+    private int attackSequence;
+    private Point attackPosition;
 
     protected Animal(int id, int energy, int x, int y) {
         this.id = id;
@@ -80,7 +84,6 @@ public abstract class Animal {
             double nextX = x + dx / distance * step;
             double nextY = y + dy / distance * step;
             if (!collision.isSegmentWalkable(getX(), getY(), (int) Math.round(nextX), (int) Math.round(nextY))) {
-                stop();
                 return;
             }
             if (!isPositionFree(nextX, nextY, teammates)) return;
@@ -114,15 +117,23 @@ public abstract class Animal {
 
     public void updateCooldown(double deltaTimeSeconds) {
         cooldownSeconds = Math.max(0, cooldownSeconds - deltaTimeSeconds);
+        attackSeconds = Math.max(0, attackSeconds - deltaTimeSeconds);
     }
 
     public boolean isOnCooldown() {
         return cooldownSeconds > 0;
     }
 
-    protected void startCooldown() {
+    protected void startAttack(Animal target) {
         cooldownSeconds = GameConstants.ATTACK_COOLDOWN_MS / 1000.0;
+        attackSeconds = GameConstants.ATTACK_ANIMATION_SECONDS;
+        attackSequence++;
+        attackPosition = new Point(target.getX(), target.getY());
     }
+
+    public boolean isAttacking() { return isAlive() && attackSeconds > 0; }
+    public int getAttackSequence() { return attackSequence; }
+    public Point getAttackPosition() { return attackPosition == null ? null : new Point(attackPosition); }
 
     public void recieveDamage(int damage) {
         this.energy -= damage;
@@ -154,6 +165,8 @@ public abstract class Animal {
     public int getY() { 
         return (int) Math.round(y); 
     }
+
+    public Point2D.Double getPosition() { return new Point2D.Double(x, y); }
 
     public void setX(int x) {
         this.x = x;

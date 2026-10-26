@@ -132,13 +132,12 @@ class MatchTest {
         Animal animal = match.getPlayer1Pack().getMembers().get(0);
         animal.setX(1030);
         animal.setY(1077);
-        assertFalse(match.moveCommand(match.getPlayer1Pack(), List.of(animal.getId()), 1200, 1077));
-        animal.moveTowards(1200, 1077);
-        match.updateTick(100);
-        assertEquals(1033, animal.getX());
+        assertTrue(match.moveCommand(match.getPlayer1Pack(), List.of(animal.getId()), 1200, 1077));
+        match.updateMovement(100);
+        assertEquals(1200, animal.getX());
+        assertEquals(1077, animal.getY());
+        assertFalse(animal.isMoving());
         assertTrue(match.getMap().isWalkable(animal.getX(), animal.getY()));
-        match.updateTick(1);
-        assertEquals(1033, animal.getX());
     }
 
     @Test

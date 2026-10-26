@@ -12,7 +12,7 @@ public class PlayerAnimal extends Animal {
     public boolean attack(Animal target, int damage) {
         if (!isAlive() || target == null || !target.isAlive() || isOnCooldown() || !isInRange(target)) return false;
         target.recieveDamage(damage);
-        startCooldown();
+        startAttack(target);
         return true;
     }
 

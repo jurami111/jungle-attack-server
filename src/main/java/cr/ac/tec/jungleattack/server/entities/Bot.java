@@ -24,7 +24,7 @@ public class Bot extends Animal {
         }
         if (nearest != null) {
             nearest.recieveDamage(damage);
-            startCooldown();
+            startAttack(nearest);
         }
     }
 }
